@@ -7,12 +7,16 @@ import com.example.demo.dto.RegisterRequest;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -49,7 +53,7 @@ public class AuthController {
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
         response.setUsername(user.get().getUsername());
-        response.setRole(user.get().getRole());
+        response.setRole(user.get().getRoles());
         response.setAccessExpiresAt(accessExp.toInstant());
         response.setRefreshExpiresAt(refreshExp.toInstant());
 
@@ -71,7 +75,7 @@ public class AuthController {
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        newUser.setRole(request.getRole());
+        newUser.setRoles(request.getRole());
 
         userRepository.save(newUser);
 
@@ -97,16 +101,15 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body("Нет токена");
+
+    @PostMapping("/auth/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
         }
-
-        String token = authHeader.substring(7);
-        jwtService.blacklist(token);
-
-        return ResponseEntity.ok("Пользователь вышел");
+        return ResponseEntity.ok("Вы успешно вышли из системы.");
     }
+
 
 }

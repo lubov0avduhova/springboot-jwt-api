@@ -3,6 +3,9 @@ package com.example.demo.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,6 +40,25 @@ public class GlobalExceptionHandler {
             errors.put(field, message);
         });
         return ResponseEntity.badRequest().body(errors);
+    }
+
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<String> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Ошибка: Неверный логин или пароль!");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Ошибка: У вас нет прав на этот ресурс!");
+    }
+
+    @ExceptionHandler(SessionAuthenticationException.class)
+    public ResponseEntity<String> handleSessionAuthenticationException(SessionAuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Ошибка: У вас уже есть активная сессия!");
     }
 
 }
