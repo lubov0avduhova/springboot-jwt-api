@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Set;
+
 @AllArgsConstructor
 @Getter
 public class RegisterRequest {
@@ -13,5 +15,5 @@ public class RegisterRequest {
     @NotNull(message = "Пароль обязателен")
     private String password;
     @NotNull(message = "Роль обязательна")
-    private Role role;
+    private Set<Role> role;
 }
